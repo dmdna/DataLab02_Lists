@@ -51,6 +51,11 @@ public class Lab2Tester {
 		lists[3] = sl_2;
 		lists[4] = dl_3;
 		lists[5] = l_3;
+		
+		assertTrue("Should return 4" , ArrayList.totalCount("Ian", lists) == 4);
+		assertTrue("Should return 6" , ArrayList.totalCount("Tim", lists) == 6);
+		assertTrue("Should return 2" , ArrayList.totalCount("Lil", lists) == 2);
+		
 		assertTrue("Should return 4" , LinkedList.totalCount("Ian", lists) == 4);
 		assertTrue("Should return 6" , LinkedList.totalCount("Tim", lists) == 6);
 		assertTrue("Should return 2" , LinkedList.totalCount("Lil", lists) == 2);
