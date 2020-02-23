@@ -1,4 +1,4 @@
-package ciic4020.list;
+package ciic4020.interfaces;
 
 public interface List<E> extends Iterable<E> {
 
@@ -17,4 +17,6 @@ public interface List<E> extends Iterable<E> {
 	public boolean isEmpty();
 	public boolean contains(E obj);
 	public void clear();
+	public int replaceAll(E e, E f);
+	public List<E> reverse();
 }

@@ -1,5 +1,8 @@
 package ciic4020.linkedlist;
 
+import ciic4020.interfaces.List;
+import ciic4020.interfaces.ListFactory;
+
 public class LinkedListFactory<E> implements ListFactory<E> {
 
 	@Override

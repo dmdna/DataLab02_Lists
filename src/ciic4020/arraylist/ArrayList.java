@@ -1,7 +1,9 @@
-package ciic4020.list;
+package ciic4020.arraylist;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import ciic4020.interfaces.List;
 
 public class ArrayList<E> implements List<E> {
 
@@ -197,5 +199,38 @@ public class ArrayList<E> implements List<E> {
 	@Override
 	public Iterator<E> iterator() {
 		return new ListIterator();
+	}
+	
+	public static int totalCount(String s, List<String>[] L) {
+		int count = 0;
+		for (int i = 0; i < L.length; i++) {
+			for (String element : L[i]) {
+				if(element.equals(s))
+					count++;
+			}
+		}
+		return count;
+	}
+
+	@Override
+	public int replaceAll(E e, E f) {
+		int replaced = 0;
+		for (int i = 0; i < this.size(); i++)
+			if (this.elements[i].equals(e)) {
+				this.elements[i] = f;
+				replaced++;
+			}
+		return replaced;
+	}
+
+	@Override
+	public List<E> reverse() {
+		List<E> reversed = this;
+		if (!this.isEmpty()) {
+			for (E e : this) {
+				reversed.add(0, e);
+			}
+		}
+		return reversed;
 	}
 }

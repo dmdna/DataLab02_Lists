@@ -1,4 +1,4 @@
-package ciic4020.linkedlist;
+package ciic4020.interfaces;
 
 public interface ListFactory<E> {
 

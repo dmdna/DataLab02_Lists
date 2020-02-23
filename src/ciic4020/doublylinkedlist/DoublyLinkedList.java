@@ -1,27 +1,28 @@
-package ciic4020.linkedlist;
+package ciic4020.doublylinkedlist;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import ciic4020.interfaces.List;
 
-public class LinkedList<E> implements List<E> {
+public class DoublyLinkedList<E> implements List<E> {
 
 	private class Node {
 		private E value;
-		private Node next;
+		private Node next, prev;
 		
-		public Node(E value, Node next) {
+		public Node(E value, Node next, Node prev) {
 			this.value = value;
 			this.next = next;
+			this.prev = prev;
 		}
 		
 		public Node(E value) {
-			this(value, null); // Delegate to other constructor
+			this(value, null, null); // Delegate to other constructor
 		}
 		
 		public Node() {
-			this(null, null); // Delegate to other constructor
+			this(null, null, null); // Delegate to other constructor
 		}
 
 		public E getValue() {
@@ -40,9 +41,17 @@ public class LinkedList<E> implements List<E> {
 			this.next = next;
 		}
 		
+		public Node getPrev() {
+			return prev;
+		}
+
+		public void setPrev(Node prev) {
+			this.prev = prev;
+		}
+		
 		public void clear() {
 			value = null;
-			next = null;
+			next = prev = null;
 		}				
 	} // End of Node class
 
@@ -57,7 +66,7 @@ public class LinkedList<E> implements List<E> {
 	
 		@Override
 		public boolean hasNext() {
-			return nextNode != null;
+			return nextNode != trailer;
 		}
 
 		@Override
@@ -74,13 +83,16 @@ public class LinkedList<E> implements List<E> {
 	} // End of ListIterator class
 
 	
-	// private fields
-	private Node header;	
+	/* private fields */
+	private Node header, trailer; // "dummy" nodes
 	private int currentSize;
 
 	
-	public LinkedList() {
+	public DoublyLinkedList() {
 		header = new Node();
+		trailer = new Node();
+		header.setNext(trailer);
+		trailer.setPrev(header);
 		currentSize = 0;
 	}
 
@@ -91,33 +103,41 @@ public class LinkedList<E> implements List<E> {
 
 	@Override
 	public void add(E obj) {
-		Node curNode, newNode;
-		// Need to find the last node
-		for (curNode = header; curNode.getNext() != null; curNode = curNode.getNext());
-		// Now curNode is the last node
-		// Create a new Node and make curNode point to it
-		newNode = new Node(obj);
-		curNode.setNext(newNode);
+		Node newNode = new Node(obj);
+
+		/* TODO With a Doubly Linked List (with header AND trailer), this is easy.
+		 * The new node must be inserted before the trailer, and that's it.
+		 * You could use a different constructor, or just add some statements below.
+		 */
+		Node lastNode = get_node(size() - 1);
+		lastNode.setNext(newNode);
+		newNode.setNext(trailer);
+		newNode.setPrev(lastNode);
 		currentSize++;
 	}
 
 	@Override
 	public void add(int index, E obj) {
-		Node curNode, newNode;
+		Node prevNode, curNode, newNode;
 		
-		// First confirm index is a valid position
-		// We allow for index == size() and delegate to add(object).
+		/* First confirm index is a valid position
+		   We allow for index == size() and delegate to add(object). */
 		if (index < 0 || index > size())
 			throw new IndexOutOfBoundsException();
 		if (index == size())
 			add(obj); // Use our "append" method
 		else {
-			// Get predecessor node (at position index - 1)
-			curNode = get_node(index - 1);
-			// The new node must be inserted between curNode and curNode's next
-			// Note that if index = 0, curNode will be header node
-			newNode = new Node(obj, curNode.getNext());
-			curNode.setNext(newNode);
+			// Get predecessor node (at position index - 1) and current node (at position index)
+			curNode = get_node(index);
+			prevNode = curNode.getPrev();			
+			/* The new node must be inserted between prevNode and curNode
+			   Note that if index = 0, curNode will be header node */
+			newNode = new Node(obj, curNode, prevNode);
+
+			// TODO For a DLL, what else needs to be done? Try a diagram; consider edge cases.
+			curNode.setPrev(newNode);
+			prevNode.setNext(newNode);
+			
 			currentSize++;
 		}
 	}
@@ -128,15 +148,18 @@ public class LinkedList<E> implements List<E> {
 		Node nextNode = curNode.getNext();
 		
 		// Traverse the list until we find the element or we reach the end
-		while (nextNode != null && !nextNode.getValue().equals(obj)) {
+		while (nextNode != trailer && !nextNode.getValue().equals(obj)) {
 			curNode = nextNode;
 			nextNode = nextNode.getNext();
 		}
 		
 		// Need to check if we found it
-		if (nextNode != null) { // Found it!
-			// If we have A -> B -> C and want to remove B, make A point to C 
+		if (nextNode != trailer) { // Found it!
+			// If we have A <-> B <-> C, need to get to A <-> C
 			curNode.setNext(nextNode.getNext());
+			
+			// TODO For a DLL, what else needs to be done? See comment above for a hint.
+			nextNode.getNext().setPrev(curNode);
 			nextNode.clear(); // free up resources
 			currentSize--;
 			return true;
@@ -147,14 +170,22 @@ public class LinkedList<E> implements List<E> {
 	
 	@Override
 	public boolean remove(int index) {
-		Node curNode, rmNode;
+		Node rmNode, prevNode, nextNode;
+		// TODO These variables could be helpful: Node prevNode, nextNode;
+		// Feel free to declare and use them in any methods, but they're not required.
+
 		// First confirm index is a valid position
 		if (index < 0 || index >= size())
 			throw new IndexOutOfBoundsException();
-		curNode = get_node(index - 1);
-		rmNode = curNode.getNext();
-		// If we have A -> B -> C and want to remove B, make A point to C 
-		curNode.setNext(rmNode.getNext());
+		// If we have A <-> B <-> C, need to get to A <-> C
+		rmNode = get_node(index); // Get the node that is to be removed
+		prevNode = rmNode.getPrev();
+		nextNode = rmNode.getNext();
+		
+		// TODO For a DLL, what needs to be done?
+		prevNode.setNext(nextNode);
+		nextNode.setPrev(prevNode);
+
 		rmNode.clear();
 		currentSize--;		
 		
@@ -173,6 +204,7 @@ public class LinkedList<E> implements List<E> {
 		// Since first node is pos 0, let header be position -1
 		for (int curPos = -1; curPos < index; curPos++)
 			curNode = curNode.getNext();
+		// Perhaps we could traverse backwards instead if index > size/2...
 		return curNode;
 	}
 
@@ -190,9 +222,15 @@ public class LinkedList<E> implements List<E> {
 		 */
 		
 		// Traverse the entire list
-		while (nextNode != null) { 
-			if (nextNode.getValue().equals(obj)) { // Remove it!
+		while (nextNode != trailer) { 
+			if (nextNode.getValue().equals(obj)) {
+				// Remove nextNode
+				
+				/* TODO For a DLL, what needs to be done?
+				 * You can declare more Node variables if it helps make things clear.
+				 */
 				curNode.setNext(nextNode.getNext());
+				nextNode.getNext().setPrev(curNode);
 				nextNode.clear();
 				currentSize--;
 				counter++;
@@ -242,11 +280,11 @@ public class LinkedList<E> implements List<E> {
 		Node curNode = header.getNext();
 		int curPos = 0;
 		// Traverse the list until we find the element or we reach the end
-		while (curNode != null && !curNode.getValue().equals(obj)) {
+		while (curNode != trailer && !curNode.getValue().equals(obj)) {
 			curPos++;
 			curNode = curNode.getNext();
 		}
-		if (curNode != null)
+		if (curNode != trailer)
 			return curPos;
 		else
 			return -1;
@@ -254,14 +292,14 @@ public class LinkedList<E> implements List<E> {
 
 	@Override
 	public int lastIndex(E obj) {
-		int curPos = 0, lastPos = -1;
-		// Traverse the list 
-		for (Node curNode = header.getNext(); curNode != null; curNode = curNode.getNext()) {
-			if (curNode.getValue().equals(obj))
-				lastPos = curPos;
-			curPos++;
+		Node curNode = trailer.getPrev();
+		int curPos = size() - 1;
+		// Traverse the list (backwards) until we find the element or we reach the beginning
+		while (curNode != header && !curNode.getValue().equals(obj)) {
+			curPos--;
+			curNode = curNode.getPrev();
 		}
-		return lastPos;
+		return curPos; // Will be -1 if we reached the header
 	}
 
 	@Override
@@ -285,17 +323,6 @@ public class LinkedList<E> implements List<E> {
 		while (size() > 0)
 			remove(0);
 	}
-	
-	public static int totalCount(String s, List<String>[] L) {
-		int count = 0;
-		for (int i = 0; i < L.length; i++) {
-			for (String element : L[i]) {
-				if(element.equals(s))
-					count++;
-			}
-		}
-		return count;
-	}
 
 	@Override
 	public int replaceAll(E e, E f) {
@@ -303,15 +330,15 @@ public class LinkedList<E> implements List<E> {
 		Node curNode = header;
 		Node nextNode = curNode.getNext();
 		
-		while (nextNode != null) {
-			if (nextNode.getValue().equals(e)) { // Found it!
+		// Traverse the list until we find the element or we reach the end
+		while (nextNode != trailer) {
+			if (nextNode.getValue().equals(e)) {
 				nextNode.setValue(f);
 				replaced++;
 			}
 			curNode = nextNode;
 			nextNode = nextNode.getNext();
 		}
-		
 		
 		return replaced;
 	}

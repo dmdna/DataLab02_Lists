@@ -1,4 +1,7 @@
-package ciic4020.list;
+package ciic4020.arraylist;
+
+import ciic4020.interfaces.List;
+import ciic4020.interfaces.ListFactory;
 
 public class ArrayListFactory<E> implements ListFactory<E> {
 
